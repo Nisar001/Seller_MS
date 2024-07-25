@@ -9,7 +9,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
       const limit = parseInt(req.query.limit as string) || 10;
       const name = req.query.name as string || 'name';
 
-      const products = await Product.find({ _id }).sort(name).skip((page - 1) * limit).limit(limit); //changes required after rabbit mq setup
+      const products = await Product.find({ _seller: _id }).sort(name).skip((page - 1) * limit).limit(limit); //changes required after rabbit mq setup
       if (!products) {
          return res.json({ message: 'No Produsts, Please add some products' })
       }

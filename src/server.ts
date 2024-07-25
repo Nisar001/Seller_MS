@@ -1,19 +1,19 @@
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import colors from 'colors'
-// import { ConnectDB } from "./core/db";
+import { ConnectDB } from "./core/db";
 import router from "./app.routes";
 import morgan from "morgan";
 import { logger, stream } from "./logger";
 
-import { connectRabbitMQ } from './services/rabbitmq'
+//import { connectRabbitMQ } from './services/rabbitmq'
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT;
 app.use(morgan("combined", { stream }));
 
-// ConnectDB();
+ConnectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -29,4 +29,4 @@ app.listen(port, () => {
    logger.info(`Server is running on port: ${port}`.bgCyan.white);
 });
 
-connectRabbitMQ()
+//connectRabbitMQ()

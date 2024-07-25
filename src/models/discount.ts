@@ -1,7 +1,7 @@
 import mongoose, { model, Schema } from 'mongoose'
 
 export interface IDiscounts extends Document {
-   _user: mongoose.Schema.Types.ObjectId;
+   _seller: mongoose.Schema.Types.ObjectId;
    _product: mongoose.Schema.Types.ObjectId;
    discountType: string;
    discountValue: number;

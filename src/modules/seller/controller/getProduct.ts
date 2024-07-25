@@ -4,7 +4,8 @@ import { Product } from '../../../models/product';
 export const getProduct = async (req: Request, res: Response) => {
    try {
       const { _id } = req.user;
-      const product = await Product.findById(_id)
+      const { _productId } = req.params
+      const product = await Product.findById({ _id: _productId })
       if (!product) {
          return res.status(404).json({ message: 'Product Not Found' })
       }

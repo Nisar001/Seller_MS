@@ -4,11 +4,12 @@ import { Request, Response } from 'express'
 export const updateProduct = async (req: Request, res: Response) => {
    try {
       const { _id } = req.user;
+      const { _productId } = req.params
       const { name, price, description } = req.body
       if ([name, price].some((field: string) => field.trim() === '')) {
          return res.status(400).json({ message: 'Fields connot be empty' })
       }
-      const product = await Product.findById(_id)
+      const product = await Product.findById({ _id: _productId })
       if (name || price || description) {
          product.name = name
          product.price = price
