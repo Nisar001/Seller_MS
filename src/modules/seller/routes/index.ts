@@ -7,7 +7,8 @@ import {
    getProductsByCategory,
    deleteProductById,
    addDiscountOnProduct,
-   updateDiscountOnProduct
+   updateDiscountOnProduct,
+   deleteDiscountOnProduct
 } from "../controller";
 
 const router = express.Router()
@@ -22,5 +23,6 @@ router.get('/get-all-products/:sellerId/category/:categoryId', getProductsByCate
 router.delete('/delete-product/:productId', deleteProductById)
 router.post('/add-discount/:productId', addDiscountOnProduct)
 router.patch('/update-discount/:discountId', updateDiscountOnProduct)
+router.delete('/delete-discount/:discountId', deleteDiscountOnProduct)
 
 export default router
