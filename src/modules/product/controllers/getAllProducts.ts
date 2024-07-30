@@ -3,18 +3,18 @@ import { Request, Response } from 'express'
 
 export const getAllProducts = async (req: Request, res: Response) => {
    try {
-      const { _id } = req.user; // user id 
+      const { _sellerId } = req.user; // user id 
       //const {page=1, limit=10, name} = req.query;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const name = req.query.name as string || 'name';
 
-      const products = await Product.find({ _seller: _id }).sort(name).skip((page - 1) * limit).limit(limit); //changes required after rabbit mq setup
+      const products = await Product.find({ _seller: _sellerId }).sort(name).skip((page - 1) * limit).limit(limit); //changes required after rabbit mq setup
       if (!products) {
          return res.json({ message: 'No Produsts, Please add some products' })
       }
 
-      const total = await Product.countDocuments({ _id }); // seller id
+      const total = await Product.countDocuments({ _sellerId }); // seller id
 
       return res.status(200).json({
          total,
@@ -34,7 +34,7 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
       const limit = parseInt(req.query.limit as string) || 10;
       const name = req.query.name as string || 'name';
 
-      const products = await Product.find({ _sellerId, _categoryId }).sort(name).skip((page - 1) * limit).limit(limit) //changes required after rabbit mq setup
+      const products = await Product.find({ _seller: _sellerId, _category: _categoryId }).sort(name).skip((page - 1) * limit).limit(limit) //changes required after rabbit mq setup
 
       if (!products) {
          return res.json({ message: "No Products, Plase Add some Products" })

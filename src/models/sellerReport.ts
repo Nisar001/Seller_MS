@@ -22,6 +22,9 @@ const SellerReportSchema: Schema = new Schema({
    totalRevenue: {
       type: Number
    }
+}, {
+   timestamps: true,
+   versionKey: false
 })
 
 export const SellerReport = model<ISellerReport>('seller_report', SellerReportSchema)

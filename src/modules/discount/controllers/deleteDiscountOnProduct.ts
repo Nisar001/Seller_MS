@@ -13,12 +13,12 @@ export const deleteDiscountOnProduct = async (req: Request, res: Response) => {
          return res.json({ message: "discount not found" })
       }
       if (discount._seller.toString() !== req.user.id) {
-         return res.status(403).json({ message: 'Forbidden: You do not have permission to delete this product' });
+         return res.status(403).json({ message: 'Forbidden: You do not have permission to delete this discount' });
       }
 
       await Discount.findByIdAndDelete(_id);
 
-      return res.status(200).json({ message: "Product deleted successfully" })
+      return res.status(200).json({ message: "Discount deleted successfully" })
    } catch (error) {
       return res.status(500).json({ error: error.message })
    }
