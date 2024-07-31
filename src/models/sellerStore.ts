@@ -1,13 +1,23 @@
 import { Schema, model, Document } from 'mongoose';
 
-interface IStore extends Document {
+export interface IStore extends Document {
    userId: Schema.Types.ObjectId;
    storeName: string;
    storeDescription?: string;
    GSTN: number;
    LICN: number;
-   storeAddress?: [object];
+   storeAddress?: IStoreAddress[];
 }
+
+export interface IStoreAddress {
+   street: string;
+   area: string;
+   city: string;
+   zipcode: string;
+   state: string;
+   country: string;
+}
+
 
 const StoreSchema = new Schema<IStore>({
    userId: {
@@ -17,7 +27,8 @@ const StoreSchema = new Schema<IStore>({
    },
    storeName: {
       type: String,
-      required: true
+      required: true,
+      unique: true
    },
    storeDescription: {
       type: String,
@@ -25,11 +36,13 @@ const StoreSchema = new Schema<IStore>({
    },
    GSTN: {
       type: Number,
-      required: true
+      required: true,
+      unique: true
    },
    LICN: {
       type: Number,
-      required: true
+      required: true,
+      unique: true
    },
    storeAddress: [
       {

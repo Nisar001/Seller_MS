@@ -11,10 +11,10 @@ import {
 const router = express.Router()
 
 router.post('/add-product', CreateProduct)
-router.patch('/update-product/:productId', updateProduct)
-router.get('/get-product/:productId', getProduct)
-router.get('/get-all-product/:sellerId', getAllProducts)
-router.get('/get-all-products/:sellerId/category/:categoryId', getProductsByCategory)
-router.delete('/delete-product/:productId', deleteProductById)
+router.patch('/update-product', updateProduct)
+router.get('/get-product', getProduct)
+router.get('/get-all-products', getAllProducts)
+router.get('/get-all-products-category', getProductsByCategory)
+router.delete('/delete', deleteProductById)
 
 export default router

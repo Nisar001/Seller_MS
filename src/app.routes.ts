@@ -11,7 +11,7 @@ const router = express.Router()
 router.use('/seller', sellerRoutes)
 
 router.use(verify_token)
-router.use('/sellere/store', storeRoutes)
+router.use('/seller/store', storeRoutes)
 router.use('/seller/product', productRoutes)
 router.use('/seller/discount', discountRoutes)
 

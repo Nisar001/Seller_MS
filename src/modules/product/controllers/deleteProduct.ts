@@ -3,23 +3,20 @@ import { Request, Response } from "express";
 
 export const deleteProductById = async (req: Request, res: Response) => {
    try {
-      const { _id } = req.params // productId
-
-      if (!req.user) {
+      const { _id } = req.user // productId
+      if (!_id) {
          return res.status(401).json({ message: 'Unauthorized' });
       }
-      const product = await Product.findById(_id)
+      const { _productId } = req.query
+      const product = await Product.findOne({ _id: _productId, _seller: _id })
       if (!product) {
          return res.json({ message: "Product not found" })
       }
-      if (product._seller.toString() !== req.user.id) {
-         return res.status(403).json({ message: 'Forbidden: You do not have permission to delete this product' });
-      }
 
-      await Product.findByIdAndDelete(_id);
+      await Product.findByIdAndDelete({ _id: _productId });
 
-      return res.status(200).json({ message: "Product deleted successfully" })
+      return res.status(200).json({ success: true, message: "Product deleted successfully" })
    } catch (error) {
-      return res.status(500).json({ message: 'Server error', error });
+      return res.status(500).json({ success: false, message: 'Server error', error });
    }
 }
