@@ -32,6 +32,10 @@ export const createStore = async (req: Request, res: Response) => {
       if (gst) {
          return res.status(400).json({ message: "GST Number should  be unique" })
       }
+      const lis = await Store.findOne({ LICN }) // check Licence and Licence number 
+      if (lis) {
+         return res.status(400).json({ message: "License Number should  be unique" })
+      }
       const store = await Store.create({
          userId: seller._id,
          storeName: storeName,

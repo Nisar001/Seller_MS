@@ -18,7 +18,6 @@ export const createBundle = async (bundleData: any) => {
       const quantity = productData.find((p: { productId: { toString: () => any; }; }) => p.productId.toString() === product.id.toString())?.quantity || 0;
       return sum + (product.price * quantity);
    }, 0);
-
    // Create the bundle with the calculated price
    const bundle = new Bundle({
       ...bundleData,
@@ -28,8 +27,8 @@ export const createBundle = async (bundleData: any) => {
    return await bundle.save();
 };
 
-export const getBundleById = async (bundleId: string) => {
-   return await Bundle.findById(bundleId).populate('products._id');
+export const getBundleById = async (bundleId: any) => {
+   return await Bundle.findById({ _id: bundleId }).populate('products._id');
 };
 
 export const getBundlesBySellerId = async (
@@ -50,9 +49,9 @@ export const getBundlesBySellerId = async (
 
       // Pagination
       const skip = (page - 1) * limit;
-
+      ``
       // Sorting
-      const sort: { [key: string]: SortOrder } = { [sortField]: sortOrder === 'desc' ? 1 : -1 };
+      const sort: { [key: string]: SortOrder } = { [sortField]: sortOrder === 'asc' ? 1 : -1 };
 
       // Fetch bundles
       const totalCount = await Bundle.countDocuments(filter);
@@ -80,8 +79,8 @@ export const getBundlesBySellerId = async (
       }
    }
 };
-export const updateBundle = async (bundleId: string, updateData: any) => {
-   return await Bundle.findByIdAndUpdate(bundleId, updateData, { new: true });
+export const updateBundle = async (bundleId: any, updateData: any) => {
+   return await Bundle.findByIdAndUpdate({ _id: bundleId }, createBundle(updateData));
 };
 
 export const deleteBundle = async (bundleId: string) => {

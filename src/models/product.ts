@@ -1,3 +1,4 @@
+import { boolean } from 'joi';
 import mongoose, { Document, model, Schema } from 'mongoose'
 
 export interface IProduct extends Document {
@@ -9,6 +10,7 @@ export interface IProduct extends Document {
    mrp: number;
    image?: string;
    description?: string;
+   isProductBlocked: boolean;
 }
 
 const ProductSchema: Schema = new Schema({
@@ -43,6 +45,10 @@ const ProductSchema: Schema = new Schema({
    },
    description: {
       type: String,
+   },
+   isProductBlocked: {
+      type: Boolean,
+      default: false
    }
 },
    {

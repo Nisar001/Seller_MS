@@ -4,6 +4,9 @@ import { Request, Response } from 'express'
 export const getAllDiscount = async (req: Request, res: Response) => {
    try {
       const { _id } = req.user
+      if (!_id) {
+         return res.status(401).json({ message: 'Unauthorized Access' })
+      }
       const { page = 1, limit = 10, search } = req.query
       const pageNumber = parseInt(page as string)
       const limitNumber = parseInt(limit as string)
@@ -14,6 +17,10 @@ export const getAllDiscount = async (req: Request, res: Response) => {
          .sort({ discountType: 1 })
          .skip((pageNumber - 1) * limitNumber)
          .limit(limitNumber)
+
+      if (!discount) {
+         return res.status(404).json({ message: 'Discount Not Found' })
+      }
 
       const totalCounts = await Discount.countDocuments(searchFilter)
       return res.status(200).json({

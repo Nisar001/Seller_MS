@@ -1,38 +1,39 @@
 import { Request, Response } from 'express'
-import { getBundlesBySellerId } from './bundleController'
+import { Bundle } from '../../../models/bundle';
 
 export const getAllBundleProductSale = async (req: Request, res: Response) => {
    try {
-      const sellerId = req.params.sellerId;
+      const { _id } = req.user; // user id 
+      if (!_id) {
+         return res.status(401).json({ message: 'Unauthorized Access' })
+      }
+      //const {page=1, limit=10, name} = req.query;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const name = req.query.name as string;
 
-      // Extract query parameters
-      const search = req.query.search?.toString();
-      const sortField = req.query.sortField?.toString() || 'name'; // Default sort field
-      const sortOrder = (req.query.sortOrder?.toString() as 'desc'); // Default sort order
-      const page = parseInt(req.query.page?.toString() || '1', 10); // Default to page 1
-      const limit = parseInt(req.query.limit?.toString() || '10', 10); // Default to 10 items per page
+      const query = name
+         ? { _seller: _id, name: { $regex: name, $options: 'i' } }
+         : { _seller: _id };
 
-      const { bundles, totalPages, perPage, currentPage, totalCount } = await getBundlesBySellerId(
-         sellerId,
-         search,
-         sortField,
-         sortOrder,
-         page,
-         limit
-      );
+      const bundles = await Bundle.find(query)
+         .skip((page - 1) * limit)
+         .limit(limit);
 
       if (bundles.length === 0) {
-         return res.status(404).json({ message: 'No bundles found' });
+         return res.json({ message: 'No Bundles, Please add some Bundles' });
       }
 
+      const total = await Bundle.countDocuments(query);
+
       return res.status(200).json({
+         success: true,
+         total,
+         page,
+         totalPages: Math.ceil(total / limit),
          bundles,
-         totalPages,
-         perPage,
-         currentPage,
-         totalCount
       });
    } catch (error) {
-      return res.status(500).json({ message: error.message });
+      res.status(500).json({ success: false, error: 'Internal Server Error' });
    }
-}
+};

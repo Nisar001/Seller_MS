@@ -1,14 +1,14 @@
 import { Request, Response } from 'express'
-import { deleteBundle } from './bundleController'
+import { Bundle } from '../../../models/bundle';
 
 export const deleteBundleProductSale = async (req: Request, res: Response) => {
    try {
-      const bundleId = req.params.bundleId;
-      const deletedBundle = await deleteBundle(bundleId);
+      const { bundleId } = req.query;
+      const deletedBundle = await Bundle.findByIdAndDelete({ _id: bundleId });
       if (!deletedBundle) {
          return res.status(404).json({ message: 'Bundle not found' });
       }
-      return res.status(200).json({ message: 'Bundle deleted successfully' });
+      return res.status(200).json({ success: true, message: 'Bundle deleted successfully' });
    } catch (error) {
       return res.status(500).json({ message: error.message });
    }

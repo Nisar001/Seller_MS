@@ -3,22 +3,17 @@ import { Request, Response } from 'express'
 
 export const deleteDiscountOnProduct = async (req: Request, res: Response) => {
    try {
-      const { _id } = req.params // discountId
-
-      if (!req.user) {
+      const { _id } = req.user;
+      if (!_id) {
          return res.status(401).json({ message: 'Unauthorized' });
       }
-      const discount = await Discount.findById(_id)
+      const { _discountId } = req.query // discountId
+      const discount = await Discount.findOne({ _id: _discountId, _seller: _id })
       if (!discount) {
          return res.json({ message: "discount not found" })
       }
-      if (discount._seller.toString() !== req.user.id) {
-         return res.status(403).json({ message: 'Forbidden: You do not have permission to delete this discount' });
-      }
-
-      await Discount.findByIdAndDelete(_id);
-
-      return res.status(200).json({ message: "Discount deleted successfully" })
+      await Discount.findByIdAndDelete({ _id: _discountId });
+      return res.status(200).json({ success: true, message: "Discount deleted successfully" })
    } catch (error) {
       return res.status(500).json({ error: error.message })
    }

@@ -1,10 +1,11 @@
 import { Request, Response } from 'express'
-import { getBundleById } from './bundleController'
-
+//import { getBundleById } from './bundleController'
+import { Bundle } from '../../../models/bundle'
 export const getBundleProductSale = async (req: Request, res: Response) => {
    try {
-      const bundleId = req.params.bundleId;
-      const bundle = await getBundleById(bundleId);
+      const { bundleId } = req.query
+      //const bundle = await getBundleById({ bundleId });
+      const bundle = await Bundle.findById({ _id: bundleId })
       if (!bundle) {
          return res.status(404).json({ message: 'Bundle not found' });
       }

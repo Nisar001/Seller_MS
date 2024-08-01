@@ -1,4 +1,5 @@
 import { Product } from "../../../models/product";
+import { Discount } from "../../../models/discount";
 import { Request, Response } from "express";
 
 export const deleteProductById = async (req: Request, res: Response) => {
@@ -12,9 +13,13 @@ export const deleteProductById = async (req: Request, res: Response) => {
       if (!product) {
          return res.json({ message: "Product not found" })
       }
-
+      const delProdDis = await Discount.findOne({ _product: _productId })
+      if (delProdDis) {
+         await Discount.findOneAndDelete({ _product: _productId })
+         await Product.findByIdAndDelete({ _id: _productId });
+         return res.status(200).json({ message: 'Product and applied discount deleted successfully' })
+      }
       await Product.findByIdAndDelete({ _id: _productId });
-
       return res.status(200).json({ success: true, message: "Product deleted successfully" })
    } catch (error) {
       return res.status(500).json({ success: false, message: 'Server error', error });
