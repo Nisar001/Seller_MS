@@ -10,7 +10,8 @@ export interface IProduct extends Document {
    mrp: number;
    image?: string;
    description?: string;
-   isProductBlocked: boolean;
+   isDeleted: boolean;
+   isBlocked: boolean;
 }
 
 const ProductSchema: Schema = new Schema({
@@ -46,7 +47,11 @@ const ProductSchema: Schema = new Schema({
    description: {
       type: String,
    },
-   isProductBlocked: {
+   isBlocked: {
+      type: Boolean,
+      default: false
+   },
+   isDeleted: {
       type: Boolean,
       default: false
    }

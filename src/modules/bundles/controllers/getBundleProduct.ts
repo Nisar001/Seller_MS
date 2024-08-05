@@ -1,16 +1,61 @@
-import { Request, Response } from 'express'
-//import { getBundleById } from './bundleController'
 import { Bundle } from '../../../models/bundle'
-export const getBundleProductSale = async (req: Request, res: Response) => {
+import { Request, Response } from 'express'
+import mongoose from 'mongoose'
+
+export const getBundle = async (req: Request, res: Response) => {
    try {
-      const { bundleId } = req.query
-      //const bundle = await getBundleById({ bundleId });
-      const bundle = await Bundle.findById({ _id: bundleId })
-      if (!bundle) {
-         return res.status(404).json({ message: 'Bundle not found' });
+      const { _id } = req.user
+      const { bundleId }: any = req.query
+
+      if (!mongoose.isValidObjectId(bundleId)) {
+         return res.status(400).json({ error: 'Invalid Bundle ObjectId' })
       }
-      return res.status(200).json(bundle);
+
+      const bundle = await Bundle.aggregate([
+         {
+            $match: {
+               _id: new mongoose.Types.ObjectId(bundleId),
+               '_createdBy._id': _id,
+               isDeleted: false,
+               isBlocked: false,
+            },
+         },
+         {
+            $lookup: {
+               from: 'products', // The collection name for products
+               localField: '_products',
+               foreignField: '_id',
+               as: 'products',
+            },
+         },
+         {
+            $project: {
+               _id: 1,
+               name: 1,
+               price: 1,
+               discount: 1,
+               _createdBy: 1,
+               products: {
+                  $map: {
+                     input: '$products',
+                     as: 'product',
+                     in: {
+                        _id: '$$product._id',
+                        name: '$$product.name',
+                        price: '$$product.price',
+                     },
+                  },
+               },
+            },
+         },
+      ])
+
+      if (!bundle || bundle.length === 0) {
+         return res.status(400).json({ error: 'No bundle found...' })
+      }
+      return res.status(200).json({ success: true, data: bundle[0] })
    } catch (error) {
-      return res.status(500).json({ message: error.message });
+      console.log(error)
+      return res.status(500).json({ error: error.message })
    }
 }

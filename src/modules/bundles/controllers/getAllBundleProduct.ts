@@ -1,39 +1,62 @@
+import { Bundle } from '../../../models/bundle'
 import { Request, Response } from 'express'
-import { Bundle } from '../../../models/bundle';
 
-export const getAllBundleProductSale = async (req: Request, res: Response) => {
+export const getAllBundle = async (req: Request, res: Response) => {
    try {
-      const { _id } = req.user; // user id 
-      if (!_id) {
-         return res.status(401).json({ message: 'Unauthorized Access' })
-      }
-      //const {page=1, limit=10, name} = req.query;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const name = req.query.name as string;
+      const { _id } = req.user
+      const { page = 1, limit = 10, search } = req.query
+      const pageNumber = parseInt(page as string)
+      const limitNumber = parseInt(limit as string)
+      const searchFilter = search
+         ? { '_createdBy._id': _id, isDeleted: false, isBlocked: false, name: { $regex: search, $options: 'i' } }
+         : { '_createdBy._id': _id, isDeleted: false, isBlocked: false }
+      const bundles = await Bundle.aggregate([
+         { $match: searchFilter },
+         { $sort: { name: 1 } }, // Sort the results by bundle name
+         {
+            $lookup: {
+               from: 'products',
+               localField: '_products',
+               foreignField: '_id',
+               as: 'products',
+            },
+         },
+         {
+            $project: {
+               _id: 1,
+               name: 1,
+               price: 1,
+               discount: 1,
+               _createdBy: 1,
+               products: {
+                  $map: {
+                     input: '$products',
+                     as: 'product',
+                     in: {
+                        _id: '$$product._id',
+                        name: '$$product.name',
+                        price: '$$product.price',
+                     },
+                  },
+               },
+            },
+         },
+         { $skip: (pageNumber - 1) * limitNumber },
+         { $limit: limitNumber },
+      ])
 
-      const query = name
-         ? { _seller: _id, name: { $regex: name, $options: 'i' } }
-         : { _seller: _id };
-
-      const bundles = await Bundle.find(query)
-         .skip((page - 1) * limit)
-         .limit(limit);
-
-      if (bundles.length === 0) {
-         return res.json({ message: 'No Bundles, Please add some Bundles' });
-      }
-
-      const total = await Bundle.countDocuments(query);
+      const totalCounts = await Bundle.countDocuments(searchFilter)
 
       return res.status(200).json({
          success: true,
-         total,
-         page,
-         totalPages: Math.ceil(total / limit),
-         bundles,
-      });
+         page: pageNumber,
+         itemsPerPage: limitNumber,
+         totalItems: totalCounts,
+         totalPages: Math.ceil(totalCounts / limitNumber),
+         data: bundles,
+      })
    } catch (error) {
-      res.status(500).json({ success: false, error: 'Internal Server Error' });
+      console.log(error)
+      return res.status(500).json({ error: error.message })
    }
-};
+}

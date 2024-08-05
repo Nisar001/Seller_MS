@@ -1,22 +1,50 @@
+import { Bundle } from '../../../models/bundle'
+import { Product } from '../../../models/product'
 import { Request, Response } from 'express'
-import { createBundle } from './bundleController'
-import { Product } from '../../../models/product';
+import mongoose, { isValidObjectId } from 'mongoose'
+import _ from 'lodash'
 
-export const createBundleProductSale = async (req: Request, res: Response) => {
+export const addBundle = async (req: Request, res: Response) => {
    try {
-      const { _id } = req.user;
-      if (!_id) {
-         return res.status(401).json({ message: 'Unauthorized Access' })
-      }
-      const bundleData = req.body;
+      const { _id, role } = req.user
+      const { name, productsId, discount } = req.body
 
-      const products = await Product.findOne({ _seller: _id })
-      if (!products) {
-         return res.status(401).json({ message: "You have not access to add other's product in bundle" })
+      // Convert productsId to array of ObjectId
+      const productIds = productsId.map((id: string) => new mongoose.Types.ObjectId(id))
+
+      // Find products by their _id
+      const products = await Product.find({
+         _id: { $in: productIds },
+         '_seller': _id,
+         isDeleted: false,
+         isBlocked: false,
+      })
+      //console.log(products)
+      if (products.length !== productsId.length) {
+         return res.status(404).json({ error: 'Some products not found' })
       }
-      const bundle = await createBundle(bundleData);
-      return res.status(201).json({ success: true, message: "Bundle Created Successfully", bundle });
+
+      // Calculate the total price of the products
+      const totalPrice = products.reduce((sum, product) => sum + product.price, 0)
+
+      // Apply the discount if provided
+      const finalPrice = discount ? totalPrice - (totalPrice * discount) / 100 : totalPrice
+
+      // Create the bundle with the calculated price
+      const bundle = await Bundle.create({
+         name,
+         price: finalPrice,
+         _products: productIds,
+         discount,
+         _createdBy: {
+            _id: _id,
+            role: role,
+         },
+      })
+
+      return res.status(201).json({ success: true, data: bundle })
    } catch (error) {
-      return res.status(500).json({ message: error.message });
+      console.log(error)
+      return res.status(500).json({ error: error.message })
    }
 }

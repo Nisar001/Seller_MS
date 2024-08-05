@@ -1,13 +1,15 @@
-import { createBundleProductSale } from "./createBundleProduct";
-import { getBundleProductSale } from "./getBundleProduct";
-import { getAllBundleProductSale } from "./getAllBundleProduct";
-import { updateBundleProductSale } from "./updateBundleProduct";
-import { deleteBundleProductSale } from './deleteBundleProduct';
+import { addBundle } from "./createBundleProduct";
+import { getBundle } from "./getBundleProduct";
+import { getAllBundle } from "./getAllBundleProduct";
+import { updateBundle } from "./updateBundleProduct";
+import { deleteBundle } from './deleteBundleProduct';
+import { removeProductFromBundle } from "./removeProduct";
 
 export {
-   createBundleProductSale,
-   getBundleProductSale,
-   getAllBundleProductSale,
-   updateBundleProductSale,
-   deleteBundleProductSale
+   addBundle,
+   getBundle,
+   getAllBundle,
+   updateBundle,
+   deleteBundle,
+   removeProductFromBundle
 }
