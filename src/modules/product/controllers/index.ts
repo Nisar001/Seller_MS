@@ -3,6 +3,7 @@ import { deleteProductById } from './deleteProduct';
 import { getProduct } from "./getProduct";
 import { getAllProducts, getProductsByCategory } from './getAllProducts';
 import { updateProduct } from "./updateProduct";
+import { availabilityStatus } from "./availability";
 
 
 export {
@@ -11,5 +12,6 @@ export {
    getProduct,
    getAllProducts,
    getProductsByCategory,
-   updateProduct
+   updateProduct,
+   availabilityStatus
 }

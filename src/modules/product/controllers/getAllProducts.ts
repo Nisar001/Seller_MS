@@ -1,7 +1,6 @@
 import { Product } from '../../../models/product';
 import { Request, Response } from 'express'
-import { Category } from '../../../models/category';
-import { Discount } from '../../../models/discount';
+
 export const getAllProducts = async (req: Request, res: Response) => {
    try {
       const { _id } = req.user; // user id 
@@ -20,7 +19,6 @@ export const getAllProducts = async (req: Request, res: Response) => {
       const products = await Product.find(query).populate('_store').populate('_category')
          .skip((page - 1) * limit)
          .limit(limit);
-      const discount = await Discount.find({ _seller: _id })
 
       if (products.length === 0) {
          return res.json({ message: 'No Products, Please add some products' });
@@ -55,7 +53,7 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
          ? { _seller: _id, _category: _categoryId, name: { $regex: name, $options: 'i' } }
          : { _seller: _id, _category: _categoryId };
 
-      const products = await Product.find(query).populate('_store').populate('_category')
+      const products = await Product.find(query).populate('_store').populate('_category').populate('discount')
          .skip((page - 1) * limit)
          .limit(limit);
 
