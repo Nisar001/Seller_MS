@@ -1,17 +1,18 @@
-import { CreateProduct } from "./addProduct";
-import { deleteProductById } from './deleteProduct';
+import { addProduct } from "./addProduct";
+import { deleteProduct } from './deleteProduct';
 import { getProduct } from "./getProduct";
-import { getAllProducts, getProductsByCategory } from './getAllProducts';
+import { getAllProduct } from './getAllProducts';
 import { updateProduct } from "./updateProduct";
-import { availabilityStatus } from "./availability";
+import { getAllCategory } from './getAllCategory'
+import { getCategory } from "./getCategory";
 
 
 export {
-   CreateProduct,
-   deleteProductById,
+   addProduct,
+   deleteProduct,
    getProduct,
-   getAllProducts,
-   getProductsByCategory,
+   getAllProduct,
+   getCategory,
+   getAllCategory,
    updateProduct,
-   availabilityStatus
 }
