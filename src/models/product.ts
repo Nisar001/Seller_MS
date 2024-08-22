@@ -1,64 +1,87 @@
-import { boolean } from 'joi';
-import mongoose, { Document, model, Schema } from 'mongoose'
+import { Schema, Document, model } from 'mongoose'
 
-export interface IProduct extends Document {
-   _seller: mongoose.Schema.Types.ObjectId;
-   _category: mongoose.Schema.Types.ObjectId;
-   _store: mongoose.Schema.Types.ObjectId;
-   name: string;
-   price: number;
-   mrp: number;
-   image?: string;
-   description?: string;
-   isDeleted: boolean;
-   isBlocked: boolean;
+interface IProduct extends Document {
+   name: string
+   price: number
+   mrp: number
+   discount?: number
+   stockAvailable: number
+   description: string
+   isDeleted: boolean
+   isBlocked: boolean
+   platformDiscount?: number
+   _blockedBy?: Schema.Types.ObjectId
+   _category: Schema.Types.ObjectId
+   _createdBy: {
+      _id: Schema.Types.ObjectId
+      role: 'seller' | 'admin'
+   }
 }
 
-const ProductSchema: Schema = new Schema({
-   _seller: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'seller',
-      required: true
+const productSchema: Schema = new Schema(
+   {
+      name: {
+         type: String,
+         required: true,
+      },
+      description: {
+         type: String,
+         required: true,
+      },
+      price: {
+         type: Number,
+         required: true,
+      },
+      mrp: {
+         type: Number,
+         required: true,
+      },
+      discount: {
+         type: Number,
+         default: undefined,
+      },
+      platformDiscount: {
+         type: Number,
+         default: undefined,
+      },
+      stockAvailable: {
+         type: Number,
+         required: true,
+         default: 0,
+      },
+      isDeleted: {
+         type: Boolean,
+         default: false,
+      },
+      isBlocked: {
+         type: Boolean,
+         default: false,
+      },
+      _blockedBy: {
+         type: Schema.Types.ObjectId,
+         default: undefined,
+      },
+
+      _createdBy: {
+         _id: {
+            type: Schema.Types.ObjectId,
+            required: true,
+         },
+         role: {
+            type: String,
+            enum: ['seller', 'admin'],
+            required: true,
+         },
+      },
+      _category: {
+         type: Schema.Types.ObjectId,
+         ref: 'Category',
+      },
    },
-   _category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'category'
-   },
-   _store: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'store',
-      required: true
-   },
-   name: {
-      type: String,
-      required: true
-   },
-   price: {
-      type: Number,
-      required: true,
-   },
-   mrp: {
-      type: Number,
-      required: true
-   },
-   image: {
-      type: String,
-   },
-   description: {
-      type: String,
-   },
-   isBlocked: {
-      type: Boolean,
-      default: false
-   },
-   isDeleted: {
-      type: Boolean,
-      default: false
-   }
-},
    {
       timestamps: true,
-      versionKey: false
-   })
+      versionKey: false,
+   }
+)
 
-export const Product = model<IProduct>("product", ProductSchema)
+export const Product = model<IProduct>('Product', productSchema)

@@ -4,7 +4,7 @@ export interface IDiscounts extends Document {
    _seller: mongoose.Schema.Types.ObjectId;
    _store: mongoose.Schema.Types.ObjectId
    _product: mongoose.Schema.Types.ObjectId;
-   discountType: string;
+   discountType: 'percent' | 'price';
    discountValue: number;
    startDate: Date;
    endDate: Date;
@@ -28,6 +28,7 @@ const DiscountSchema: Schema = new Schema({
    },
    discountType: {
       type: String,
+      enum: ['percent', 'price']
    },
    discountValue: {
       type: Number

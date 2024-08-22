@@ -1,27 +1,39 @@
-import { Product } from "../../../models/product";
-import { Discount } from "../../../models/discount";
-import { Request, Response } from "express";
+import { Product } from '../../../models/product'
+import { Request, Response } from 'express'
+import { isValidObjectId } from 'mongoose'
 
-export const deleteProductById = async (req: Request, res: Response) => {
+export const deleteProduct = async (req: Request, res: Response) => {
    try {
-      const { _id } = req.user // productId
-      if (!_id) {
-         return res.status(401).json({ message: 'Unauthorized' });
+      const { _id, role } = req.user
+      const { productId } = req.query
+      if (!isValidObjectId(productId)) {
+         return res.status(400).json({ error: 'Invalid Product Id.' })
       }
-      const { _productId } = req.query
-      const product = await Product.findOne({ _id: _productId, _seller: _id })
+      const product = await Product.findOne({
+         _id: productId,
+         '_createdBy._id': _id,
+         '_createdBy.role': role,
+      })
       if (!product) {
-         return res.json({ message: "Product not found" })
+         return res.status(404).json({ error: 'Product not found..' })
       }
-      const delProdDis = await Discount.findOne({ _product: _productId })
-      if (delProdDis) {
-         await Discount.findOneAndDelete({ _product: _productId })
-         await Product.findByIdAndDelete({ _id: _productId });
-         return res.status(200).json({ message: 'Product and applied discount deleted successfully' })
+      if (product.isBlocked) {
+         return res.status(400).json({
+            error: 'This product has been blocked.',
+         })
       }
-      await Product.findByIdAndDelete({ _id: _productId });
-      return res.status(200).json({ success: true, message: "Product deleted successfully" })
+      if (product.isDeleted) {
+         return res.status(400).json({
+            error: 'This product already has been deleted.',
+         })
+      }
+      product.isDeleted = true
+      await product.save()
+      return res
+         .status(200)
+         .json({ message: 'Product deleted successfully', deletedItem: product })
    } catch (error) {
-      return res.status(500).json({ success: false, message: 'Server error', error });
+      console.log(error)
+      return res.status(500).json({ error: error.message })
    }
 }

@@ -4,6 +4,7 @@ export interface IStore extends Document {
    userId: Schema.Types.ObjectId;
    storeName: string;
    storeDescription?: string;
+   isBlocked: boolean;
    GSTN: number;
    LICN: number;
    storeAddress?: IStoreAddress[];
@@ -33,6 +34,10 @@ const StoreSchema = new Schema<IStore>({
    storeDescription: {
       type: String,
       required: true
+   },
+   isBlocked: {
+      type: Boolean,
+      default: false
    },
    GSTN: {
       type: Number,

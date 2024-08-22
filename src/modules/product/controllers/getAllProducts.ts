@@ -1,80 +1,87 @@
-import { Product } from '../../../models/product';
+import { Product } from '../../../models/product'
 import { Request, Response } from 'express'
-import { Category } from '../../../models/category';
-import { Discount } from '../../../models/discount';
-export const getAllProducts = async (req: Request, res: Response) => {
-   try {
-      const { _id } = req.user; // user id 
-      if (!_id) {
-         return res.status(401).json({ message: 'Unauthorized Access' })
-      }
-      //const {page=1, limit=10, name} = req.query;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const name = req.query.name as string;
 
-      const query = name
-         ? { _seller: _id, name: { $regex: name, $options: 'i' } }
-         : { _seller: _id };
-
-      const products = await Product.find(query).populate('_store').populate('_category')
-         .skip((page - 1) * limit)
-         .limit(limit);
-      const discount = await Discount.find({ _seller: _id })
-
-      if (products.length === 0) {
-         return res.json({ message: 'No Products, Please add some products' });
-      }
-
-      const total = await Product.countDocuments(query);
-
-      return res.status(200).json({
-         success: true,
-         total,
-         page,
-         totalPages: Math.ceil(total / limit),
-         products,
-      });
-   } catch (error) {
-      return res.status(500).json({ success: false, message: 'Server Error', error: error.message })
-   }
-}
-
-export const getProductsByCategory = async (req: Request, res: Response) => {
+export const getAllProduct = async (req: Request, res: Response) => {
    try {
       const { _id } = req.user
-      if (!_id) {
-         return res.status(401).json({ message: 'Unauthorized Access' })
+      const { page = 1, limit = 10, search, category } = req.query
+      const pageNumber = parseInt(page as string)
+      const limitNumber = parseInt(limit as string)
+
+      // Create the initial match filter
+      const matchFilter: any = { '_createdBy._id': _id, isDeleted: false, isBlocked: false }
+      if (search) {
+         matchFilter.$or = [
+            { name: { $regex: search, $options: 'i' } },
+         ]
       }
-      const { _categoryId } = req.query; //categoryId
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const name = req.query.name as string;
-
-      const query = name
-         ? { _seller: _id, _category: _categoryId, name: { $regex: name, $options: 'i' } }
-         : { _seller: _id, _category: _categoryId };
-
-      const products = await Product.find(query).populate('_store').populate('_category')
-         .skip((page - 1) * limit)
-         .limit(limit);
-
-
-
-      if (products.length === 0) {
-         return res.json({ message: 'No Products, Please add some products' });
+      if (category) {
+         matchFilter['category.name'] = { $regex: category, $options: 'i' }
       }
+      const products = await Product.aggregate([
+         {
+            $lookup: {
+               from: 'categories',
+               localField: '_category',
+               foreignField: '_id',
+               as: 'category',
+            },
+         },
+         { $unwind: '$category' },
+         {
+            $match: matchFilter,
+         },
+         {
+            $facet: {
+               metadata: [{ $count: 'total' }],
+               data: [
+                  { $sort: { name: 1 } },
+                  { $skip: (pageNumber - 1) * limitNumber },
+                  { $limit: limitNumber },
+                  {
+                     $project: {
+                        _id: 1,
+                        name: 1,
+                        price: 1,
+                        mrp: 1,
+                        discount: 1,
+                        description: 1,
+                        stockAvailable: 1,
+                        category: '$category.name',
+                        platformDiscount: {
+                           $cond: {
+                              if: { $gt: ['$platformDiscount', null] },
+                              then: '$platformDiscount',
+                              else: '$$REMOVE',
+                           },
+                        },
+                        discountedPrice: {
+                           $cond: {
+                              if: { $gt: ['$discountedPrice', null] },
+                              then: '$discountedPrice',
+                              else: '$$REMOVE',
+                           },
+                        },
+                     },
+                  },
+               ],
+            },
+         },
+      ])
 
-      const total = await Product.countDocuments(query);
+      const totalItems = products[0]?.metadata[0]?.total || 0
+      const paginatedData = products[0]?.data || []
 
       return res.status(200).json({
          success: true,
-         total,
-         page,
-         totalPages: Math.ceil(total / limit),
-         products,
-      });
+         page: pageNumber,
+         itemsPerPage: limitNumber,
+         totalItems,
+         totalPages: Math.ceil(totalItems / limitNumber),
+         data: paginatedData,
+      })
    } catch (error) {
-      return res.status(500).json({ success: false, message: 'Server Error', error: error.message })
+      console.log(error)
+      return res.status(500).json({ error: error.message })
    }
 }

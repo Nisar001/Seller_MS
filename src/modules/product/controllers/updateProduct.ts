@@ -1,48 +1,58 @@
-import { Product } from '../../../models/product';
+import { Product } from '../../../models/product'
 import { Request, Response } from 'express'
 
 export const updateProduct = async (req: Request, res: Response) => {
    try {
-      const { _id } = req.user;
-      if (!_id) {
-         return res.status(401).json({ message: 'Unauthorized access' })
+      const { _id } = req.user
+      const { productId } = req.query
+      const { name, mrp, discount, description } = req.body
+      const product = await Product.findOne({ _id: productId, '_createdBy._id': _id })
+      if (!product) {
+         return res.status(400).json({ error: 'No product available..' })
       }
-      const { _productId } = req.query
-      const { name, price, mrp, description } = req.body
-      const isNonEmpty = (field: any) => {
-         if (typeof field === 'string') {
-            return field.trim() !== '';
-         }
-         if (typeof field === 'number') {
-            return !isNaN(field);  // Ensure it's a valid number
-         }
-         return false;
-      };
-
-      if (
-         !isNonEmpty(name) ||
-         !isNonEmpty(price) ||
-         !isNonEmpty(mrp) ||
-         !isNonEmpty(description)
-      ) {
-         return res.status(400).json({ success: false, error: 'Field cannot be empty' });
-      }
-      const product = await Product.findById({ _id: _productId })
-      if (name || price || description) {
-         product.name = name
-         product.price = price
-         product.mrp = mrp
-         product.description = description
-         await product.save()
-         return res.status(200).json({
-            succsess: true,
-            message: 'Product Updated...', product: {
-               product: product
-            }
+      if (product.isBlocked) {
+         return res.status(400).json({
+            error: 'This product has been blocked.',
          })
       }
-      return res.status(400).json({ success: false, message: 'Please Provide some field to update' })
+      if (product.isDeleted) {
+         return res.status(400).json({
+            error: 'This product has been deleted.',
+         })
+      }
+
+      if (name !== undefined) product.name = name
+      if (description !== undefined) product.description = description
+
+      // Calculate the final price
+      if (mrp !== undefined) {
+         const mrpValue = Number(mrp)
+         if (isNaN(mrpValue) || mrpValue <= 0) {
+            return res.status(400).json({
+               error: 'Discount must be a number greater than 0.',
+            })
+         }
+         product.mrp = mrpValue
+         const finalPrice = product.discount ? product.mrp - (product.mrp * product.discount) / 100 : product.mrp
+         product.price = finalPrice
+      } // Validate and update discount if provided
+      else if (discount !== undefined) {
+         const discountValue = Number(discount)
+         if (isNaN(discountValue) || discountValue <= 0 || discountValue > 100) {
+            return res
+               .status(400)
+               .json({
+                  error: 'Discount must be a number greater than 0 and less than or equal to 100.',
+               })
+         }
+         product.discount = discountValue
+         const finalPrice = product.mrp - (product.mrp * product.discount) / 100
+         product.price = finalPrice
+      }
+      await product.save()
+      return res.status(200).json({ message: 'Updated successfully.', data: product })
    } catch (error) {
-      return res.status(500).json({ success: false, error: error.message })
+      console.log(error)
+      return res.status(500).json({ error: error.message })
    }
 }

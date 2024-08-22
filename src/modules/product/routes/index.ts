@@ -1,20 +1,22 @@
 import express from 'express'
 import {
-   CreateProduct,
+   addProduct,
    updateProduct,
-   getAllProducts,
+   getAllCategory,
    getProduct,
-   getProductsByCategory,
-   deleteProductById
+   getAllProduct,
+   deleteProduct,
+   getCategory
 } from '../controllers'
 
 const router = express.Router()
 
-router.post('/add-product', CreateProduct)
+router.post('/add-product', addProduct)
 router.patch('/update-product', updateProduct)
 router.get('/get-product', getProduct)
-router.get('/get-all-products', getAllProducts)
-router.get('/get-all-products-category', getProductsByCategory)
-router.delete('/delete', deleteProductById)
+router.get('/get-all-products', getAllProduct)
+router.get('/get-all-category', getAllCategory)
+router.delete('/delete', deleteProduct)
+router.get('/get-category', getCategory)
 
 export default router
